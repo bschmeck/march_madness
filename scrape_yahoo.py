@@ -115,7 +115,21 @@ class Scraper:
             p = YahooScoreboardParser()
             p.feed(content)
             teams = p.teams
-        print teams
+                
+        for name, url in teams.iteritems():
+            picks = {}
+            while len(picks.keys()) == 0:
+                print "Get", url
+                res = br.open(url)
+                content = res.read()
+                p = YahooBracketParser()
+                try:
+                    p.feed(content)
+                except HTMLParseError:
+                    pass
+                picks = p.regions
+            for region, winners in picks.iteritems():
+                print name, region, winners
 
 if __name__ == "__main__":
     try:
