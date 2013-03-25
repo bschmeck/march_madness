@@ -94,7 +94,17 @@ class Scraper:
         self.username = username
         self.password = password
         self.group_id = group_id
-        self.browser = None
+        # Set up the browser object and log in to Yahoo
+        url = LOGIN_URL
+        self.browser = Browser()
+        print "Get", url
+        res = self.browser.open(url)
+        self.browser.select_form(name="login_form")
+        self.browser.form["login"] = self.username
+        self.browser.form["passwd"] = self.password
+        print "Submit form"
+        self.browser.submit()
+
         
     def content(self, url):
         print "Get", url
@@ -106,16 +116,6 @@ class Scraper:
         return content
     
     def scrape(self):
-        url = LOGIN_URL
-        self.browser = Browser()
-        print "Get", url
-        res = self.browser.open(url)
-        self.browser.select_form(name="login_form")
-        self.browser.form["login"] = self.username
-        self.browser.form["passwd"] = self.password
-        print "Submit form"
-        self.browser.submit()
-
         teams = {}
         while len(teams.keys()) == 0:
             url = STANDINGS_URL % self.group_id
