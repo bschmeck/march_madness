@@ -92,46 +92,25 @@ class YahooBracketParser(MyParser):
             self.cur_pick += data + " "
             
 class Scraper:
-    def main(self, argv=None):
-        if argv is None:
-            argv = sys.argv
-        try:
-            try:
-                opts, args = getopt.getopt(argv[1:], "g:p:u:")
-            except getopt.error, msg:
-                raise Usage(msg)
-
-            group_id = None
-            password = None
-            username = None
-            for option, arg in opts:
-                if option == "-g":
-                    group_id = arg
-                elif option == "-p":
-                    password = arg
-                elif option == "-u":
-                    tmp = arg.split(":")
-                    username = tmp[0]
-                    if len(tmp) == 2: password = tmp[1]
-            if not group_id and not username and not password:
-                raise Usage("Must specify a group number, username and password")
-        except Usage, err:
-            print >>sys.stderr, err.msg
-            return 2
+    def __init__(self, username, password, group_id):
+        self.username = username
+        self.password = password
+        self.group_id = group_id
         
+    def scrape(self):
         url = LOGIN_URL
         br = Browser()
         print "Get", url
         res = br.open(url)
         br.select_form(name="login_form")
-        br.form["login"] = username
-        br.form["passwd"] = password
+        br.form["login"] = self.username
+        br.form["passwd"] = self.password
         print "Submit form"
         br.submit()
 
         teams = {}
         while len(teams.keys()) == 0:
-            url = STANDINGS_URL % group_id
+            url = STANDINGS_URL % self.group_id
             print "Get", url
             res = br.open(url)
             content = res.read()
@@ -141,5 +120,28 @@ class Scraper:
         print teams
 
 if __name__ == "__main__":
-    scraper = Scraper()
-    sys.exit(scraper.main())
+    try:
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "g:p:u:")
+        except getopt.error, msg:
+            raise Usage(msg)
+
+        group_id = None
+        password = None
+        username = None
+        for option, arg in opts:
+            if option == "-g":
+                group_id = arg
+            elif option == "-p":
+                password = arg
+            elif option == "-u":
+                tmp = arg.split(":")
+                username = tmp[0]
+                if len(tmp) == 2: password = tmp[1]
+        if not group_id and not username and not password:
+            raise Usage("Must specify a group number, username and password")
+    except Usage, err:
+        print >>sys.stderr, err.msg
+        sys.exit(2)
+    scraper = Scraper(username, password, group_id)
+    sys.exit(scraper.scrape())
