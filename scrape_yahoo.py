@@ -70,11 +70,9 @@ class YahooBracketParser(MyParser):
                 self.cur_region = []
                 self.div_count = 1
         elif tag == "strong":
-            print "STRONG", attrs
             if self.cur_region_name:
                 attrs = self.attrs_to_dict(attrs)
                 if "ysf-tpe-user-pick" in attrs.get("class", "").split(" "):
-                    print "MATCH"
                     self.cur_pick = ""
         
     def handle_endtag(self, tag):
