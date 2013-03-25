@@ -94,34 +94,41 @@ class Scraper:
         self.username = username
         self.password = password
         self.group_id = group_id
+        self.browser = None
         
+    def content(self, url):
+        print "Get", url
+        res = self.browser.open(url)
+        content = res.read()
+        # Yahoo occasionally returns a link tag with no space between the style
+        # attribute string and the href attribute tag.  Fix that.
+        content = content.replace(';"href', ';" href')
+        return content
+    
     def scrape(self):
         url = LOGIN_URL
-        br = Browser()
+        self.browser = Browser()
         print "Get", url
-        res = br.open(url)
-        br.select_form(name="login_form")
-        br.form["login"] = self.username
-        br.form["passwd"] = self.password
+        res = self.browser.open(url)
+        self.browser.select_form(name="login_form")
+        self.browser.form["login"] = self.username
+        self.browser.form["passwd"] = self.password
         print "Submit form"
-        br.submit()
+        self.browser.submit()
 
         teams = {}
         while len(teams.keys()) == 0:
             url = STANDINGS_URL % self.group_id
-            print "Get", url
-            res = br.open(url)
-            content = res.read()
+            content = self.content(url)
             p = YahooScoreboardParser()
             p.feed(content)
             teams = p.teams
-                
+
         for name, url in teams.iteritems():
             picks = {}
             while len(picks.keys()) == 0:
-                print "Get", url
-                res = br.open(url)
-                content = res.read()
+                content = self.content(url)
+
                 p = YahooBracketParser()
                 try:
                     p.feed(content)
