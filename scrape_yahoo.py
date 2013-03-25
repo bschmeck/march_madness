@@ -114,7 +114,25 @@ class Scraper:
         # attribute string and the href attribute tag.  Fix that.
         content = content.replace(';"href', ';" href')
         return content
-    
+
+    def output_picks(self, name, picks):
+        # We want to output TEAM_NAME,REGION,SEED_OF_WINNER
+        # But SEED_OF_WINNER isn't a good identifier in the Final Four
+        # So use <REGION><SEED_OF_WINNER> in the final four
+        for region, winners in picks.iteritems():
+            if region == "FF":
+                tmp = []
+                for i in range(len(winners)):
+                    winner = winners[i]
+                    if i < 4:
+                        # The first four entries are just the winners of each region,
+                        # so translate those into <REGION><SEED_OF_WINNER>
+                        tmp.append(["UL", "LL", "UR", "LR"][i] + winner.split(" ")[0])
+                    else:
+                        tmp.append(tmp[winners.index(winner)])
+                winners = tmp
+            print "%s,%s,%s" % (name, region, ",".join(map(lambda x: x.split(" ")[0], winners)))
+
     def scrape(self):
         teams = {}
         while len(teams.keys()) == 0:
@@ -135,9 +153,8 @@ class Scraper:
                 except HTMLParseError:
                     pass
                 picks = p.regions
-            for region, winners in picks.iteritems():
-                print name, region, winners
-
+            self.output_picks(name, picks)
+            
 if __name__ == "__main__":
     try:
         try:
