@@ -32,7 +32,6 @@ class YahooScoreboardParser(MyParser):
         self.capture = False
         
     def handle_starttag(self, tag, attrs):
-        # print tag
         if tag == 'table':
             for key, value in attrs:
                 if key != "class": continue
