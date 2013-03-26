@@ -90,24 +90,25 @@ class YahooBracketParser(MyParser):
             self.cur_pick += data + " "
             
 class Scraper:
-    def __init__(self, username, password, group_id):
+    def __init__(self, username, password, group_id, verbose=False):
         self.username = username
         self.password = password
         self.group_id = group_id
+        self.verbose = verbose
         # Set up the browser object and log in to Yahoo
         url = LOGIN_URL
         self.browser = Browser()
-        print "Get", url
+        if self.verbose: print "Get", url
         res = self.browser.open(url)
         self.browser.select_form(name="login_form")
         self.browser.form["login"] = self.username
         self.browser.form["passwd"] = self.password
-        print "Submit form"
+        if self.verbose: print "Submit form"
         self.browser.submit()
 
         
     def content(self, url):
-        print "Get", url
+        if self.verbose: print "Get", url
         res = self.browser.open(url)
         content = res.read()
         # Yahoo occasionally returns a link tag with no space between the style
@@ -158,13 +159,14 @@ class Scraper:
 if __name__ == "__main__":
     try:
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "g:p:u:")
+            opts, args = getopt.getopt(sys.argv[1:], "g:p:u:v")
         except getopt.error, msg:
             raise Usage(msg)
 
         group_id = None
         password = None
         username = None
+        verbose = False
         for option, arg in opts:
             if option == "-g":
                 group_id = arg
@@ -174,10 +176,12 @@ if __name__ == "__main__":
                 tmp = arg.split(":")
                 username = tmp[0]
                 if len(tmp) == 2: password = tmp[1]
+            elif option == "-v":
+                verbose = True
         if not group_id and not username and not password:
             raise Usage("Must specify a group number, username and password")
     except Usage, err:
         print >>sys.stderr, err.msg
         sys.exit(2)
-    scraper = Scraper(username, password, group_id)
+    scraper = Scraper(username, password, group_id, verbose)
     sys.exit(scraper.scrape())
