@@ -66,7 +66,7 @@ class YahooBracketParser(MyParser):
             attrs = self.attrs_to_dict(attrs)
             m = re.match("region-(\d)", attrs.get("id", ""))
             if m:
-                self.cur_region_name = ["FF", "UL", "UR", "LL", "LR"][int(m.group(1))]
+                self.cur_region_name = ["FF", "UL", "LL", "UR", "LR"][int(m.group(1))]
                 self.cur_region = []
                 self.div_count = 1
         elif tag == "strong":
