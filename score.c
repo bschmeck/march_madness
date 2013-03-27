@@ -30,9 +30,10 @@ parse(fp, teampp)
      FILE *fp;
      TEAM **teampp;
 {
+  SEED *seedp;
   TEAM *teamp;
-  char *c, *name, *row;
-  int i, len, nteams, offset;
+  char *chunk, *comma, *name, *row;
+  int i, nteams, offset;
 
   offset = -1;
   nteams = 10;
@@ -40,13 +41,19 @@ parse(fp, teampp)
   row = (char *)malloc(LINESZ * sizeof(char));
 
   while (fgets(row, LINESZ, fp) != NULL) {
-    c = strchr(row, ',');
-    len = c - row;
-    name = (char *)malloc((len + 1) * sizeof(char));
-    strncpy(name, row, len);
-    name[len] = '\0';
-    if (offset < 0 || strncmp(name, teamp[offset].name, len + 1) != 0) {
-      offset += 1;
+    chunk = row;
+    
+    /* The row starts with a name. */
+    comma = strchr(chunk, ',');
+    if (comma == NULL)
+      return -1;
+    *comma = '\0';
+    name = (char *)malloc((strlen(chunk) + 1) * sizeof(char));
+    strcpy(name, chunk);
+    /* If this is a new name, or the first name, set the team's name. */
+    if (offset < 0 || strcmp(name, teamp[offset].name) != 0) {
+      offset++;
+      /* Dynamically grow the team array, if needed. */
       if (offset >= nteams) {
         nteams *= 2;
         teamp = realloc(teamp, nteams * sizeof(TEAM));
