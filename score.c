@@ -8,17 +8,18 @@ struct _team; typedef struct _team TEAM;
 typedef char SEED;
 
 int parse(FILE *, TEAM **);
-int process(TEAM *);
-int score_outcome(SEED *, TEAM *);
+int process(TEAM *, SEED *, int, int);
+int score_outcome(TEAM *, SEED *);
+int score_team(TEAM *, SEED *);
 
 struct _team
 {
 	char *name;
-	SEED region_ul[15];
-	SEED region_ll[15];
-	SEED region_ur[15];
-	SEED region_lr[15];
-	SEED final_four[3];
+	SEED region_ul[14];
+	SEED region_ll[14];
+	SEED region_ur[14];
+	SEED region_lr[14];
+	SEED final_four[7];
 };
 
 /*
@@ -33,7 +34,7 @@ parse(fp, teampp)
   SEED *seedp;
   TEAM *teamp;
   char *chunk, *comma, *name, *row;
-  int i, nteams, offset;
+  int end_of_line, final_four, i, j, multiplier, nteams, offset;
 
   offset = -1;
   nteams = 10;
@@ -60,33 +61,124 @@ parse(fp, teampp)
       }
       teamp[offset].name = name;
     }
+  
+    /* Next comes the region identifier. */
+    chunk = comma + 1;
+    comma = strchr(chunk, ',');
+    *comma = '\0';
+    if (strncmp(chunk, "UL", 2) == 0) {
+      seedp = teamp[offset].region_ul;
+      multiplier = 0;
+    } else if (strncmp(chunk, "LL", 2) == 0) {
+      seedp = teamp[offset].region_ll;
+      multiplier = 1;
+    } else if (strncmp(chunk, "UR", 2) == 0) {
+      seedp = teamp[offset].region_ur;
+      multiplier = 2;
+    } else if (strncmp(chunk, "LR", 2) == 0) {
+      seedp = teamp[offset].region_lr;
+      multiplier = 3;
+    } else if (strncmp(chunk, "FF", 2) == 0) {
+      seedp = teamp[offset].final_four;
+    } else
+      printf("Unknown region: %s\n", chunk);
+
+    final_four = seedp == teamp[offset].final_four;
+    end_of_line = 0;
+    while (!end_of_line) {
+      chunk = comma + 1;
+      comma = strchr(chunk, ',');
+      if (comma == NULL) {
+        comma = strchr(chunk, '\n');
+        if (comma == NULL)
+          return -1;
+        end_of_line = 1;
+      }
+      *comma = '\0';
+      /* The final four seeds are prefixed with the team's region. */
+      if (final_four) {
+        if (strncmp(chunk, "UL", 2) == 0)
+          multiplier = 0;
+        else if (strncmp(chunk, "LL", 2) == 0)
+          multiplier = 1;
+        else if (strncmp(chunk, "UR", 2) == 0)
+          multiplier = 2;
+        else if (strncmp(chunk, "LR", 2) == 0)
+          multiplier = 3;
+        else
+          printf("Unknown region: %s\n", chunk);
+        chunk += 2;
+      }
+      *seedp++ = (SEED)atoi(chunk) + 16*multiplier;
+    }
   }
 
-  for (i = 0; i <= offset; i++)
-    printf("TEAM: %s\n", teamp[i].name);
-  
   return 0;
 }
 
-int process(teams)
+int process(teams, gamestate, matchup, index)
 	TEAM *teams;
+    SEED *gamestate;
+    int index, matchup;
 {
-    SEED region_seed[16] = {1,16,8,9,5,12,4,13,6,11,3,14,7,10,2,15};
-    SEED outcome[15];
-    SEED *outcomep;
-    int i;
-    
-    outcomep = outcome;
-    for (i = 0; i < 15; i++) {
-        if (i < 8)
-            *outcomep++ = region_seed[2*i];
-        else
-            *outcomep++ = outcome[2*(i-8)];
+  int offset, ret;
+  
+  if (index > 126)
+    return score_outcome(teams, gamestate);
+
+  gamestate[index] = gamestate[matchup];
+  if ((ret = process(teams, gamestate, matchup + 2, index + 1)) != 0)
+    return ret;
+  gamestate[index] = gamestate[matchup + 1];
+  if ((ret = process(teams, gamestate, matchup + 2, index + 1)) != 0)
+    return ret;
+  return 0;
+}
+
+int
+score_outcome(teams, outcome)
+     TEAM *teams;
+     SEED *outcome;
+{
+  TEAM *team;
+  int hi_score, i, nwinners, score, *tids, tid_size;
+
+  tid_size = 100;
+  tids = (int *)malloc(tid_size * sizeof(int));
+  nwinners = 0;
+  hi_score = 0;
+
+  for (i = 0; teams[i] != NULL; i++) {
+    score = score_team(teams[i], outcome);
+    if (score > hi_score) {
+      tids[0] = i;
+      nwinners = 1;
+    } else if (score == hi_score) {
+      tids[nwinners++] = i;
+      if (nwinners > tid_size) {
+        tid_size *= 2;
+        tids = (int *)realloc(tid_size * sizeof(int));
+      }
     }
-    for (i = 0; i < 15; i++)
-        printf("%d ", outcome[i]);
-    printf("\n");
-    return 0;
+  }
+  printf("%d", outcome[0]);
+  for (i = 1; i < 63; i++)
+    printf(",%d", outcome[i]);
+  for (i = 0; i < nwinners; i++)
+    printf(",%s", team[i].name);
+  printf("\n");
+
+  return 0;
+}
+
+int
+score_team(team, outcome)
+     TEAM *team;
+     SEED *outcome;
+{
+  int i, score;
+
+  return 0;
 }
 
 int main(argc, argv)
