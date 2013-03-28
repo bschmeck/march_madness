@@ -113,6 +113,7 @@ score_outcome(teams, nteams, outcome)
   for (i = 0; i < nteams; i++) {
     score = score_team(&teams[i], outcome);
     if (score > hi_score) {
+      hi_score = score;
       tids[0] = i;
       nwinners = 1;
     } else if (score == hi_score) {
