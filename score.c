@@ -74,6 +74,7 @@ parse(fp, teampp, nteamsp)
   *nteamsp = i + 1;
   *teampp = teams;
   
+  free(row);
   return 0;
 }
 
@@ -131,7 +132,7 @@ score_outcome(teams, nteams, outcome)
   for (i = 1; i < nwinners; i++)
     printf(",\"%s\"", teams[tids[i]].name);
   printf("],\n");
-
+  free(tids);
   return 0;
 }
 
