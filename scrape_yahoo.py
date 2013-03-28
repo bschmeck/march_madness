@@ -116,9 +116,15 @@ class Scraper:
         return content
 
     def output_picks(self, name, picks):
-        # We want to output TEAM_NAME,REGION,SEED_OF_WINNER
-        # But SEED_OF_WINNER isn't a good identifier in the Final Four
-        # So use <REGION><SEED_OF_WINNER> in the final four
+        # We want to output TEAM_NAME,SEED_OF_WINNERS
+        # But SEED_OF_WINNER isn't unique (4 teams seeded #1, etc.)
+        # So use SEED_OF_WINNER + OFFSET
+        # REGION UL: OFFSET = 0
+        # REGION LL: OFFSET = 16
+        # REGION UR: OFFSET = 32
+        # REGION LR: OFFSET = 48
+        prediction = [0] * 63
+        offsets = {"UL": 0, "LL": 1, "UR": 2, "LR": 3}
         for region, winners in picks.iteritems():
             if region == "FF":
                 tmp = []
@@ -126,12 +132,21 @@ class Scraper:
                     winner = winners[i]
                     if i < 4:
                         # The first four entries are just the winners of each region,
-                        # so translate those into <REGION><SEED_OF_WINNER>
-                        tmp.append(["UL", "LL", "UR", "LR"][i] + winner.split(" ")[0])
+                        # and we know they're in [UL, LL, UR, LR] order
+                        # so translate those into <SEED_OF_WINNER> + OFFSET
+                        tmp.append([0, 16, 32, 48][i] + int(winner.split(" ")[0]))
                     else:
+                        # For the final games, look up the index of the winner in the winners
+                        # array, and pull the corresponding entry out of tmp
                         tmp.append(tmp[winners.index(winner)])
-                winners = tmp
-            print "%s,%s,%s" % (name, region, ",".join(map(lambda x: x.split(" ")[0], winners)))
+                prediction[56:] = map(lambda x: str(x), tmp)
+            else:
+                offset = offsets[region]
+                winners = map(lambda x: str(int(x.split(" ")[0]) + offset*16), winners)
+                for elt in [(0, 8), (32, 4), (48, 2)]:
+                    start = elt[0] + offset * elt[1]
+                    prediction[start:start+elt[1]] = winners[elt[0]/4:elt[0]/4+elt[1]]
+        print "%s,%s" % (name, ",".join(prediction))
 
     def scrape(self):
         teams = {}
