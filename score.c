@@ -157,7 +157,8 @@ int main(argc, argv)
   FILE *fp;
   TEAM *teamp;
   int i, j, nteams, ret;
-
+  SEED outcome[63] = {1,9,5,4,6,3,10,2,17,24,21,20,22,19,23,18,33,40,37,36,43,35,39,34,49,56,53,52,54,51,55,50,1,4,3,2,17,20,19,18,33,37,35,34,49,52,54,50,1,3,17,18,33,35,49,50,1,17,35,50,17,50,50};
+  
   fp = fopen("picks", "r");
   ret = parse(fp, &teamp, &nteams);
 
@@ -169,5 +170,6 @@ int main(argc, argv)
     printf("\n");
   }
 
+  score_outcome(teamp, nteams, outcome);
 }
 
