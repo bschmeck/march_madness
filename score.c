@@ -124,12 +124,13 @@ score_outcome(teams, nteams, outcome)
       }
     }
   }
-  printf("%d", outcome[0]);
+  printf("\"%d", outcome[0]);
   for (i = 1; i < 63; i++)
     printf(",%d", outcome[i]);
-  for (i = 0; i < nwinners; i++)
-    printf(",%s", team[i].name);
-  printf("\n");
+  printf("\":[\"%s\"", teams[tids[0]].name);
+  for (i = 1; i < nwinners; i++)
+    printf(",\"%s\"", teams[tids[i]].name);
+  printf("],\n");
 
   return 0;
 }
