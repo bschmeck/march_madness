@@ -157,19 +157,15 @@ int main(argc, argv)
   FILE *fp;
   TEAM *teamp;
   int i, j, nteams, ret;
-  SEED outcome[63] = {1,9,5,4,6,3,10,2,17,24,21,20,22,19,23,18,33,40,37,36,43,35,39,34,49,56,53,52,54,51,55,50,1,4,3,2,17,20,19,18,33,37,35,34,49,52,54,50,1,3,17,18,33,35,49,50,1,17,35,50,17,50,50};
+  SEED initial_bracket[16] = {1,16,8,9,5,12,4,13,3,14,6,11,7,10,2,15};
+  SEED *outcome;
   
   fp = fopen("picks", "r");
   ret = parse(fp, &teamp, &nteams);
 
-  for (i = 0; i < nteams; i++) {
-    printf("%s", teamp[i].name);
-    for (j = 0; j < 63; j++) {
-      printf(",%d", teamp[i].prediction[j]);
-    }
-    printf("\n");
-  }
-
-  score_outcome(teamp, nteams, outcome);
+  outcome = (SEED *)malloc(127 * sizeof(SEED));
+  for (i = 0; i < 4; i++)
+    memcpy(outcome + i*16, initial_bracket, 16*sizeof(SEED));
+  process(teamp, nteams, outcome, 0, 64);
 }
 
