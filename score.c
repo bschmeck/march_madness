@@ -91,7 +91,7 @@ int process(teams, nteams, gamestate, matchup, index)
   int offset, ret;
   
   if (index > 126)
-    return score_outcome(teams, nteams, gamestate);
+    return score_outcome(teams, nteams, &gamestate[64]);
 
   gamestate[index] = gamestate[matchup];
   if ((ret = process(teams, nteams, gamestate, matchup + 2, index + 1)) != 0)
