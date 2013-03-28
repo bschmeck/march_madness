@@ -146,7 +146,12 @@ score_team(team, outcome)
 {
   int i, score;
 
-  return 0;
+  score = 0;
+  for (i = 0; i < 63; i++)
+    if (team->prediction[i] == outcome[i])
+      score++;
+  
+  return score;
 }
 
 int main(argc, argv)
