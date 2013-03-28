@@ -7,7 +7,7 @@
 struct _team; typedef struct _team TEAM;
 typedef char SEED;
 
-int parse(FILE *, TEAM **);
+int parse(FILE *, TEAM **, int *);
 int process(TEAM *, int, SEED *, int, int);
 int score_outcome(TEAM *, int, SEED *);
 int score_team(TEAM *, SEED *);
@@ -23,9 +23,10 @@ struct _team
  * data structures.
  */
 int
-parse(fp, teampp)
+parse(fp, teampp, nteamsp)
      FILE *fp;
      TEAM **teampp;
+     int *nteamsp;
 {
   SEED *seedp;
   TEAM *teams;
@@ -70,16 +71,9 @@ parse(fp, teampp)
       *seedp++ = (SEED)atoi(chunk);
     }
   }
-  nteams = i + 1;
+  *nteamsp = i + 1;
+  *teampp = teams;
   
-  for (i = 0; i < nteams; i++) {
-    printf("%s", teams[i].name);
-    for (j = 0; j < 63; j++) {
-      printf(",%d", teams[i].prediction[j]);
-    }
-    printf("\n");
-  }
-
   return 0;
 }
 
@@ -160,9 +154,18 @@ int main(argc, argv)
 {
   FILE *fp;
   TEAM *teamp;
-  int ret;
+  int i, j, nteams, ret;
 
   fp = fopen("picks", "r");
-  ret = parse(fp, &teamp);
+  ret = parse(fp, &teamp, &nteams);
+
+  for (i = 0; i < nteams; i++) {
+    printf("%s", teamp[i].name);
+    for (j = 0; j < 63; j++) {
+      printf(",%d", teamp[i].prediction[j]);
+    }
+    printf("\n");
+  }
+
 }
 
