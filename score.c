@@ -141,12 +141,33 @@ score_team(team, outcome)
      TEAM *team;
      SEED *outcome;
 {
-  int i, score;
-
+  int i, j, *round_score, score;
+  int rounds[6] = { 2, 3, 5, 8, 13, 21 };
+  
   score = 0;
-  for (i = 0; i < 63; i++)
-    if (team->prediction[i] == outcome[i])
-      score++;
+  round_score = rounds;
+  for (i = 0; i < 63; i++) {
+    if (i == 32 || i == 48 || i == 56 || i == 60 || i == 62)
+      round_score++;
+  
+    if (team->prediction[i] == outcome[i]) {
+      score += *round_score;
+      
+      if (i < 32) {
+        /* In the first round, it's an upset if the winner's seed is > 8. */
+        if ((outcome[i] - 1) % 16 >= 8)
+          score++;        
+      } else if (i < 48) {
+        /*
+         * In the second round, you have to look at the first round matchup.  j
+         * is the index of the first round matchup.
+         */
+        j = 2 * (i - 32);
+        if (outcome[i] >= outcome[j] && outcome[i] >= outcome[j+1])
+          score++;
+      }
+    }
+  }
   
   return score;
 }
