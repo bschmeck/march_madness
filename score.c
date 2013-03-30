@@ -183,7 +183,7 @@ int main(argc, argv)
   TEAM *teamp;
   int i, j, nteams, ret;
   SEED initial_bracket[16] = {1,16,8,9,5,12,4,13,3,14,6,11,7,10,2,15};
-  SEED early_rounds[48] = {1,8,12,4,6,3,7,2,17,25,28,29,22,30,26,18,33,40,37,36,43,35,39,47,49,57,60,52,54,51,55,50,1,12,3,2,25,29,22,18,33,36,35,47,49,52,51,50};
+  SEED early_rounds[56] = {1,8,12,4,6,3,7,2,17,25,28,29,22,30,26,18,33,40,37,36,43,35,39,47,49,57,60,52,54,51,55,50,1,12,3,2,25,29,22,18,33,36,35,47,49,52,51,50,1,0,25,18,36,0,52,51};
   SEED *outcome;
   
   fp = fopen("picks", "r");
@@ -192,13 +192,12 @@ int main(argc, argv)
   outcome = (SEED *)calloc(127, sizeof(SEED));
   for (i = 0; i < 4; i++)
     memcpy(outcome + i*16, initial_bracket, 16*sizeof(SEED));
-  memcpy(outcome + 64, early_rounds, 48*sizeof(SEED));
+  memcpy(outcome + 64, early_rounds, 56*sizeof(SEED));
   
   process(teamp, nteams, outcome, 96, 112);
-  /*
-  for (i = 0; i < nteams; i++) {
-    printf("%s: %d\n", teamp[i].name, score_team(&teamp[i], outcome + 64));
-  }
-  */
+  
+  /* for (i = 0; i < nteams; i++) { */
+  /*   printf("%s: %d\n", teamp[i].name, score_team(&teamp[i], outcome + 64)); */
+  /* } */
 }
 
